@@ -1,0 +1,72 @@
+@import "variables";
+
+.block-editor-block-list__layout {
+	@import "core";
+}
+
+.block-editor-block-list__layout .align-full,
+.block-editor-block-list__layout .alignfull,
+.block-editor-block-list__layout .breakout {
+	left: 0;
+	right: 0;
+	width: 100%;
+	margin-left: 0;
+	margin-right: 0;
+	position: relative;
+}
+
+@media (min-width: 851px) {
+	.image-text-1 figure {
+		width: 60% !important;
+		margin-right: -71px !important;
+		margin-bottom: 43px !important;
+	}
+}
+
+h1, .h1 {
+	font-family: $h1-font;
+	font-size: $h1-font-size;
+}
+h2, .h2 {
+	font-family: $h2-font;
+	font-size: $h2-font-size;
+}
+h3, .h3 {
+	font-family: $h3-font;
+	font-size: $h3-font-size;
+}
+h4, .h4 {
+	font-family: $h4-font;
+	font-size: $h4-font-size;
+}
+h5, .h5 {
+	font-family: $h5-font;
+	font-size: $h5-font-size;
+}
+h6, .h6 {
+	font-family: $h6-font;
+	font-size: $h6-font-size;
+}
+a {
+	text-decoration: none;
+	-webkit-transition: $trans;
+		 -moz-transition: $trans;
+		-ms-transition: $trans;
+		 -o-transition: $trans;
+			transition: $trans;
+	img {
+		border-style: none;
+	}
+}
+html {
+	font-size: 10px;
+}
+body {
+	color: #1A1919;
+	line-height: 1.4;
+	font-family: $font;
+	font-size: $font-size;
+}
+.upper {
+	text-transform: uppercase;
+}

@@ -1,0 +1,65 @@
+[
+    {
+        "key": "group_5f20b3dc42b29",
+        "title": "Block Settings",
+        "fields": [
+            {
+                "key": "field_5f20b3ecaae3f",
+                "label": "Show on",
+                "name": "show_on",
+                "type": "select",
+                "instructions": "",
+                "required": 1,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "choices": {
+                    "all": "All devices",
+                    "mobile": "Only show for mobile",
+                    "desktop": "Only show for desktop"
+                },
+                "default_value": "all",
+                "allow_null": 0,
+                "multiple": 0,
+                "ui": 1,
+                "ajax": 0,
+                "return_format": "value",
+                "placeholder": ""
+            },
+            {
+                "key": "field_5f2258379821f",
+                "label": "Block settings",
+                "name": "block_settings",
+                "type": "css_margin_padding",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                }
+            }
+        ],
+        "location": [
+            [
+                {
+                    "param": "block",
+                    "operator": "==",
+                    "value": "all"
+                }
+            ]
+        ],
+        "menu_order": 10,
+        "position": "normal",
+        "style": "default",
+        "label_placement": "top",
+        "instruction_placement": "label",
+        "hide_on_screen": "",
+        "active": true,
+        "description": ""
+    }
+]

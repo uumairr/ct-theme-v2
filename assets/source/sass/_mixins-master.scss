@@ -1,0 +1,899 @@
+@import "variables";
+
+$jeet-gutter: 3 !default;
+$jeet-parent-first: false !default;
+$jeet-layout-direction: 'LTR' !default;
+$jeet-max-width: 141rem !default;
+
+@mixin cf() {
+	@include clearfix();
+}
+
+// Clearfix
+@mixin clearfix() {
+	*zoom: 1;
+	&::before,
+	&::after {
+		content: '';
+		display: table;
+		table-layout: fixed;
+	}
+	&::after {
+		clear: both;
+	}
+}
+
+// Clear after (not all clearfix need this also)
+@mixin clearfix-after() {
+	clear: both;
+}
+
+// Hardware acceleration
+@mixin hardware($backface: true, $perspective: 1000) {
+	@if $backface {
+		-webkit-backface-visibility: hidden;
+		-moz-backface-visibility: hidden;
+		backface-visibility: hidden;
+	}
+	-webkit-perspective: $perspective;
+	-moz-perspective: $perspective;
+	perspective: $perspective;
+}
+
+$breakpoints: (
+	's-mobile': 32rem,
+	'm-mobile': 480px,
+	'l-mobile': 600px,
+	'p-tablet': 768px,
+	'l-tablet': 1024px,
+	'laptop': 1280px,
+	'desktop': 1824px,
+);
+//
+//	Media Queries and to add more sizes include it in list
+// Type, only and for is optional and defaults to min for a mobile first approach
+//
+// example @include media-q(laptop, max, true, all) { width: 100%; }
+// output: @media only all and (max-width: 1099px) { .test { width: 100%; } }
+//
+// example of undefined size, only and for @include media-q(1100px) { width: 100%; }
+// output: @media only screen and (min-width: 1100px) { .test { width: 100%; } }
+//
+@mixin media-q($width, $type: min, $only: true, $for: screen) {
+	@if map_has_key($breakpoints, $width) {
+		$width: map_get($breakpoints, $width);
+		@if $type == min {
+			$width: $width - 1px;
+		}
+		@if $only == true {
+			$only: only;
+		}
+		@if $only == false {
+			$only: null;
+		}
+		@if $breakpoints != 'l-tablet' or $breakpoints != 'p-tablet' {
+			@media #{$only} #{$for} and (#{$type}-width: $width) {
+				@content;
+			}
+		}
+		@if $breakpoints == 'l-tablet' or $breakpoints == 'p-tablet' {
+			@if $breakpoints == 'l-tablet' {
+				@media #{$only} #{$for} and (min-device-width: 768px) and (max-device-width: $width) and (orientation: landscape) {
+					@content;
+				}
+			} @else {
+				@media #{$only} #{$for} and (min-device-width: $width) and (max-device-width: 1024px) and (orientation: portrait) {
+					@content;
+				}
+			}
+		}
+	} @else {
+		@if $type == min {
+			$width: $width - 1px;
+		}
+		@if $only == true {
+			$only: only;
+		}
+		@if $only == false {
+			$only: null;
+		}
+		@if $breakpoints != 'l-tablet' or $breakpoints != 'p-tablet' {
+			@media #{$only} #{$for} and (#{$type}-width: $width) {
+				@content;
+			}
+		}
+		@if $breakpoints == 'l-tablet' or $breakpoints == 'p-tablet' {
+			@if $breakpoints == 'l-tablet' {
+				@media #{$only} #{$for} and (min-device-width: 768px) and (max-device-width: $width) and (orientation: landscape) {
+					@content;
+				}
+			} @else {
+				@media #{$only} #{$for} and (min-device-width: $width) and (max-device-width: 1024px) and (orientation: portrait) {
+					@content;
+				}
+			}
+		}
+	}
+}
+
+// Viewport sized typography with minimum and maximum values
+//
+// @param {Number}   $responsive  - Viewport-based size (vw/vh)
+// @param {Number}   $min         - Minimum font size (px)
+//
+// @param {Number}   $max         - Maximum font size (px)(optional)
+//
+// @param {Number}   $fallback    - Fallback for viewport - based units (optional)
+//
+//
+// @example to get the following result - 5vw font size (with 5rem fallback), minumum of 35px and maximum of 15rem
+//
+// .test {
+//		@include responsive-font(5vw, 35px, 15rem, 5rem);
+// }
+//
+// Which results as the following in CSS
+// .test {
+//   font-size: 5rem;
+//   font-size: 5vw;
+// }
+//
+// @media (max-width: 700px) {
+//   .test {
+//     font-size: 35px;
+//   }
+// }
+//
+// @media (min-width: 3000px) {
+//   .test {
+//     font-size: 15rem;
+//   }
+// }
+
+@mixin responsive-font($responsive, $min, $max: false, $fallback: false) {
+	$responsive-unitless: calc($responsive / calc($responsive - $responsive + 1));
+	$dimension: if(unit($responsive) == 'vh', 'height', 'width');
+	$min-breakpoint: calc($min / $responsive-unitless * 100);
+
+	@media (max-#{$dimension}: #{$min-breakpoint}) {
+		font-size: $min;
+	}
+	@if $max {
+		$max-breakpoint: calc($max / $responsive-unitless * 100);
+
+		@media (min-#{$dimension}: #{$max-breakpoint}) {
+			font-size: $max;
+		}
+	}
+	@if $fallback {
+		font-size: $fallback;
+	}
+	font-size: $responsive;
+}
+
+// Linear Gradient
+@mixin background-gradient($start-color, $end-color, $orientation) {
+	background: $start-color;
+
+	@if $orientation == 'vertical' {
+		background: -webkit-linear-gradient(top, $start-color, $end-color);
+		background: -webkit-gradient(linear, left top, left bottom, from($start-color), to($end-color));
+		background: -moz-linear-gradient(top, $start-color, $end-color);
+		background: -o-linear-gradient(top, $start-color, $end-color);
+		background: linear-gradient(to bottom, $start-color, $end-color);
+	} @else if $orientation == 'horizontal' {
+		background: -webkit-linear-gradient(left, $start-color, $end-color);
+		background: -webkit-gradient(linear, left top, right top, from($start-color), to($end-color));
+		background: -moz-linear-gradient(left, $start-color, $end-color);
+		background: -o-linear-gradient(left, $start-color, $end-color);
+		background: linear-gradient(to right, $start-color, $end-color);
+	} @else {
+		background: -webkit-radial-gradient(center, ellipse cover, $start-color, $end-color);
+		background: -webkit-radial-gradient(center, ellipse, $start-color, $end-color);
+		background: -moz-radial-gradient(center, ellipse, $start-color, $end-color);
+		background: -o-radial-gradient(center, ellipse, $start-color, $end-color);
+		background: radial-gradient(ellipse at center, $start-color, $end-color);
+	}
+}
+
+// Center element and add a max width
+@mixin center($max-width: $jeet-max-width, $pad: 0) {
+	@include clearfix;
+	width: auto;
+	max-width: $max-width;
+	float: none;
+	display: block;
+	margin: {
+		right: auto;
+		left: auto;
+	}
+	padding: {
+		left: $pad;
+		right: $pad;
+	}
+}
+
+// Center block without max width
+@mixin center-block {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+// Uncenter the element
+@mixin uncenter() {
+	max-width: none;
+	margin-right: 0;
+	margin-left: 0;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+// String Replace
+
+@function str-replace($string, $search, $replace: '') {
+	$index: str-index($string, $search);
+
+	@if $index {
+		@return str-slice($string, 1, $index - 1) + $replace +
+			str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+	}
+
+	@return $string;
+}
+
+// String Contains
+@function ends-with($string, $find) {
+	@if (str-slice($string, (str-length($string) - str-length($find) + 1)) == $find) {
+		@return true;
+	} @else {
+		@return false;
+	}
+}
+
+// Font Face
+
+@mixin font-face($name, $path, $weight: null, $style: null, $exts: eot woff2 woff ttf svg) {
+	$src: null;
+
+	$extmods: (
+		eot: '?',
+		svg: '#' + str-replace($name, ' ', '_'),
+	);
+
+	$formats: (
+		otf: 'opentype',
+		ttf: 'truetype',
+	);
+
+	@each $ext in $exts {
+		$extmod: if(map-has-key($extmods, $ext), $ext + map-get($extmods, $ext), $ext);
+		$format: if(map-has-key($formats, $ext), map-get($formats, $ext), $ext);
+		$src: append($src, url(quote($path + '.' + $extmod)) format(quote($format)), comma);
+	}
+
+	@font-face {
+		font-family: quote($name);
+		font-style: $style;
+		font-weight: $weight;
+		src: $src;
+	}
+}
+
+$flexbox-grid-mixins-box-sizing: border-box !default;
+
+@mixin grid(
+	$display: flex,
+	$flex-direction: null,
+	$flex-wrap: null,
+	$flex-flow: null,
+	$justify-content: null,
+	$align-items: null,
+	$align-content: null,
+	$gutter: null,
+	$grid-type: skeleton
+) {
+	@if $flexbox-grid-mixins-box-sizing == 'border-box' or $flexbox-grid-mixins-box-sizing == 'content-box' {
+		-webkit-box-sizing: $flexbox-grid-mixins-box-sizing;
+		-moz-box-sizing: $flexbox-grid-mixins-box-sizing;
+		box-sizing: $flexbox-grid-mixins-box-sizing;
+	}
+
+	@if $display {
+		display: $display;
+	}
+
+	@if $flex-direction {
+		-webkit-box-orient: vertical;
+		-webkit-box-direction: normal;
+		-webkit-flex-direction: $flex-direction;
+		-moz-box-orient: vertical;
+		-moz-box-direction: normal;
+		-ms-flex-direction: $flex-direction;
+		flex-direction: $flex-direction;
+	}
+	@if $flex-wrap {
+		-webkit-flex-wrap: $flex-wrap;
+		-ms-flex-wrap: $flex-wrap;
+		flex-wrap: $flex-wrap;
+	}
+
+	@if $flex-flow {
+		-webkit-box-orient: vertical;
+		-webkit-box-direction: normal;
+		-webkit-flex-flow: $flex-flow;
+		-moz-box-orient: vertical;
+		-moz-box-direction: normal;
+		-ms-flex-flow: $flex-flow;
+		flex-flow: $flex-flow;
+	}
+
+	@if $justify-content {
+		-webkit-box-pack: $justify-content;
+		-webkit-justify-content: $justify-content;
+		-moz-box-pack: $justify-content;
+		-ms-flex-pack: $justify-content;
+		justify-content: $justify-content;
+	}
+	@if $align-items {
+		-webkit-box-align: $align-items;
+		-webkit-align-items: $align-items;
+		-moz-box-align: $align-items;
+		-ms-flex-align: $align-items;
+		align-items: $align-items;
+	}
+	@if $align-content {
+		-webkit-align-content: $align-content;
+		-ms-flex-line-pack: $align-content;
+		align-content: $align-content;
+	}
+
+	@if $grid-type == skeleton {
+		@if $gutter {
+			@include grid-margin($margin: 0 calc($gutter / 2 * -1));
+		}
+	}
+
+	@content;
+}
+
+@mixin grid-col(
+	$col: null,
+	$grid-columns: 12,
+	$col-offset: null,
+	$gutter: null,
+	$condensed: false,
+	$align-self: null,
+	$flex-grow: 0,
+	$flex-shrink: 1,
+	$flex-basis: auto,
+	$order: null,
+	$shorthand: true,
+	$grid-type: skeleton,
+	$last-child: false,
+	$width: null,
+	$max-width: null,
+	$min-width: null,
+	$height: null,
+	$max-height: null,
+	$min-height: null
+) {
+	@if $flexbox-grid-mixins-box-sizing == 'border-box' or $flexbox-grid-mixins-box-sizing == 'content-box' {
+		-webkit-box-sizing: $flexbox-grid-mixins-box-sizing;
+		-moz-box-sizing: $flexbox-grid-mixins-box-sizing;
+		box-sizing: $flexbox-grid-mixins-box-sizing;
+	}
+
+	@if type-of($col) == number and unitless($col) == true {
+		$flex-shrink: 0;
+		$flex-basis: calc($col / $grid-columns);
+
+		@if $grid-type == skeleton {
+			@if $gutter and unit($gutter) == '%' {
+				$flex-basis: $flex-basis - $gutter;
+			} @else if $gutter and unitless($gutter) == false {
+				$flex-basis: -webkit-calc(#{$flex-basis} - #{$gutter});
+				$flex-basis: -moz-calc(#{$flex-basis} - #{$gutter});
+				$flex-basis: calc(#{$flex-basis} - #{$gutter});
+			}
+		} @else if $grid-type == margin-offset {
+			@if $gutter and unit($gutter) == '%' {
+				$flex-basis: calc(100% - calc($gutter * calc($grid-columns / $col - 1))) / calc($grid-columns / $col);
+			} @else if $gutter and unitless($gutter) == false {
+				$flex-basis: -webkit-calc(
+					#{$flex-basis} - #{calc($gutter * calc($grid-columns / $col - 1) / calc($grid-columns / $col))}
+				);
+				$flex-basis: -moz-calc(
+					#{$flex-basis} - #{calc($gutter * calc($grid-columns / $col - 1) / calc($grid-columns / $col))}
+				);
+				$flex-basis: calc(#{$flex-basis} - #{calc($gutter * calc($grid-columns / $col - 1) / calc($grid-columns / $col))});
+			}
+		}
+
+		@if $col-offset and unit($col-offset) == '%' {
+			$flex-basis: $flex-basis + $col-offset;
+		} @else if $col-offset and unitless($col-offset) == false {
+			$flex-basis: -webkit-calc(#{$flex-basis} + #{$col-offset});
+			$flex-basis: -moz-calc(#{$flex-basis} + #{$col-offset});
+			$flex-basis: calc(#{$flex-basis} + #{$col-offset});
+		}
+	} @else if type-of($col) == number and unitless($col) == false {
+		$flex-grow: 0;
+		$flex-shrink: 0;
+		$flex-basis: $col;
+	} @else if type-of($col) == string and $col == 'auto' {
+		// flex: auto;
+		$flex-grow: 1;
+		$flex-shrink: 1;
+		$flex-basis: auto;
+	} @else if type-of($col) == string and $col == 'equal' {
+		// flex: 1;
+		$flex-grow: 1;
+		$flex-shrink: 1;
+		$flex-basis: 0;
+	} @else if type-of($col) == string and $col == 'none' {
+		// flex: none;
+		$flex-grow: 0;
+		$flex-shrink: 0;
+		$flex-basis: auto;
+	} @else if type-of($col) == string and $col == 'initial' {
+		// flex: initial;
+		$flex-grow: 0;
+		$flex-shrink: 1;
+		$flex-basis: auto;
+	} @else if type-of($col) == string and $col == 'breakpoint' {
+		// deprecated
+		$flex-grow: 0;
+		$flex-shrink: 1;
+		$flex-basis: auto;
+		$width: 100%;
+	} @else if type-of($col) == string and $col == 'positive' {
+		// positive number
+		@if $flex-grow == 0 {
+			$flex-grow: 1;
+		}
+		$flex-shrink: 0;
+		$flex-basis: 0;
+	}
+
+	@if type-of($shorthand) == bool and $shorthand == true {
+		-webkit-box-flex: $flex-grow;
+		-webkit-flex: $flex-grow $flex-shrink $flex-basis;
+		-moz-box-flex: $flex-grow;
+		-ms-flex: $flex-grow $flex-shrink $flex-basis;
+		flex: $flex-grow $flex-shrink $flex-basis;
+	} @else {
+		-webkit-flex-basis: $flex-basis;
+		-ms-flex-preferred-size: $flex-basis;
+		flex-basis: $flex-basis;
+		-webkit-box-flex: $flex-grow;
+		-webkit-flex-grow: $flex-grow;
+		-moz-box-flex: $flex-grow;
+		-ms-flex-positive: $flex-grow;
+		flex-grow: $flex-grow;
+		-webkit-flex-shrink: $flex-shrink;
+		-ms-flex-negative: $flex-shrink;
+		flex-shrink: $flex-shrink;
+	}
+
+	@if $align-self != null {
+		-webkit-align-self: $align-self;
+		-ms-flex-item-align: $align-self;
+		align-self: $align-self;
+	}
+
+	@if type-of($order) == number {
+		-webkit-box-ordinal-group: $order;
+		-webkit-order: $order;
+		-moz-box-ordinal-group: $order;
+		-ms-flex-order: $order;
+		order: $order;
+	}
+
+	@if type-of($width) == bool and $width == true {
+		width: $flex-basis;
+	} @else if type-of($width) == number and unitless($width) == false {
+		width: $width;
+	} @else if type-of($width) == string and $width == 'auto' {
+		width: auto;
+	}
+
+	@if type-of($max-width) == bool and $max-width == true and type-of($flex-basis) == number {
+		max-width: $flex-basis;
+	}
+	@if type-of($max-width) == bool and $max-width == true and type-of($flex-basis) != number {
+		max-width: 100%;
+	} @else if type-of($max-width) == number and unitless($max-width) == false {
+		max-width: $max-width;
+	} @else if type-of($max-width) == string and $max-width == 'auto' {
+		max-width: -webkit-fill-available;
+	}
+
+	@if type-of($min-width) == bool and $min-width == true {
+		min-width: $flex-basis;
+	} @else if type-of($min-width) == number and unitless($min-width) == false {
+		min-width: $min-width;
+	} @else if type-of($min-width) == string and $min-width == 'auto' {
+		min-width: auto;
+	}
+
+	@if $height != null {
+		height: $height;
+	}
+	@if $max-height != null {
+		max-height: $max-height;
+	}
+	@if $min-height != null {
+		min-height: $min-height;
+	}
+
+	@if $gutter and unitless($gutter) == false {
+		@if $grid-type == skeleton {
+			@if type-of($condensed) == bool and $condensed == true {
+				@include grid-col-margin($margin: 0 calc($gutter / 2));
+			} @else {
+				@include grid-col-margin($margin: 0 calc($gutter / 2) $gutter);
+			}
+		} @else if $grid-type == margin-offset {
+			@if type-of($col) == string and $col == 'breakpoint' {
+				@include grid-col-margin($margin-right: 0);
+			} @else if type-of($last-child) == bool and $last-child == true {
+				@include grid-col-margin($margin-right: 0);
+			} @else {
+				@include grid-col-margin($margin-right: $gutter);
+			}
+
+			@if $condensed == false {
+				@include grid-col-margin($margin-bottom: $gutter);
+			}
+		}
+	}
+
+	@content;
+}
+
+@mixin grid-margin($margin: null, $margin-top: null, $margin-right: null, $margin-bottom: null, $margin-left: null) {
+	@if $margin != null {
+		margin: $margin;
+	}
+	@if $margin-top != null {
+		margin-top: $margin-top;
+	}
+	@if $margin-bottom != null {
+		margin-bottom: $margin-bottom;
+	}
+	@if $margin-left != null {
+		margin-left: $margin-left;
+	}
+	@if $margin-right != null {
+		margin-right: $margin-right;
+	}
+}
+
+@mixin grid-col-margin(
+	$margin: null,
+	$margin-top: null,
+	$margin-right: null,
+	$margin-bottom: null,
+	$margin-left: null
+) {
+	@include grid-margin($margin, $margin-top, $margin-right, $margin-bottom, $margin-left);
+}
+
+// Select all children from the first to `$num`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin first($num) {
+	@if $num == 1 {
+		&:first-child {
+			@content;
+		}
+	} @else {
+		&:nth-child(-n + #{$num}) {
+			@content;
+		}
+	}
+}
+
+// Select all children from the last to `$num`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin last($num) {
+	&:nth-last-child(-n + #{$num}) {
+		@content;
+	}
+}
+
+// Select all children after the first to `$num`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin after-first($num) {
+	&:nth-child(n + #{$num + 1}) {
+		@content;
+	}
+}
+
+// Select all children before `$num` from the last.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin from-end($num) {
+	&:nth-last-child(#{$num}) {
+		@content;
+	}
+}
+
+// Select all children between `$first` and `$last`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin between($first, $last) {
+	&:nth-child(n + #{$first}):nth-child(-n + #{$last}) {
+		@content;
+	}
+}
+
+// Select all even children between `$first` and `$last`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin even-between($first, $last) {
+	&:nth-child(even):nth-child(n + #{$first}):nth-child(-n + #{$last}) {
+		@content;
+	}
+}
+
+// Select all odd children between `$first` and `$last`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin odd-between($first, $last) {
+	&:nth-child(odd):nth-child(n + #{$first}):nth-child(-n + #{$last}) {
+		@content;
+	}
+}
+
+// Select all `$num` children between `$first` and `$last`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin n-between($num, $first, $last) {
+	&:nth-child(#{$num}n):nth-child(n + #{$first}):nth-child(-n + #{$last}) {
+		@content;
+	}
+}
+
+// Select all children but `$num`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin all-but($num) {
+	&:not(:nth-child(#{$num})) {
+		@content;
+	}
+}
+
+// Select children each `$num`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+// @alias every
+@mixin each($num) {
+	&:nth-child(#{$num}n) {
+		@content;
+	}
+}
+
+// Select children each `$num`.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin every($num) {
+	&:nth-child(#{$num}n) {
+		@content;
+	}
+}
+
+// Select the `$num` child from the start and the `$num` child from the last.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin from-first-last($num) {
+	&:nth-child(#{$num}),
+	&:nth-last-child(#{$num}) {
+		@content;
+	}
+}
+
+// Select the item in the middle of `$num` child. Only works with odd number
+// chain.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin middle($num) {
+	&:nth-child(#{round(calc($num / 2))}) {
+		@content;
+	}
+}
+
+// Select all children between the `$num` first and the `$num` last.
+// @group with-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - id of the child
+@mixin all-but-first-last($num) {
+	&:nth-child(n + #{$num}):nth-last-child(n + #{$num}) {
+		@content;
+	}
+}
+
+// This quantity-query mixin will only select the first of `$limit` items. It will not
+// work if there is not as much as item as you set in `$limit`.
+// @group Quantity queries
+// @param {number} $limit
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin first-of($limit) {
+	&:nth-last-child(#{$limit}):first-child {
+		@content;
+	}
+}
+
+// This quantity-query mixin will only select the last of `$limit` items. It will not
+// if there is not as much as item as you set in `$limit`.
+// @group Quantity queries
+// @param {number} $limit
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin last-of($limit) {
+	&:nth-of-type(#{$limit}):nth-last-of-type(1) {
+		@content;
+	}
+}
+
+// This quantity-query mixin will select every items if there is at least `$num` items. It will not
+// if there is not as much as item as you set in `$num`.
+// @group Quantity queries
+// @param {number} $limit
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin at-least($num) {
+	$selector: &;
+	$child: nth(nth($selector, -1), -1);
+
+	&:nth-last-child(n + #{$num}),
+	&:nth-last-child(n + #{$num}) ~ #{$child} {
+		@content;
+	}
+}
+
+// This quantity-query mixin will select every items if there is at most `$num` items. It will not
+// if there is not as much as item as you set in `$num`.
+// @group Quantity queries
+// @param {number} $limit
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin at-most($num) {
+	$selector: &;
+	$child: nth(nth($selector, -1), -1);
+
+	&:nth-last-child(-n + #{$num}):first-child,
+	&:nth-last-child(-n + #{$num}):first-child ~ #{$child} {
+		@content;
+	}
+}
+
+// This quantity-query mixin will select every items only if there is between `$min` and `$max` items.
+// @group Quantity queries
+// @param {number} $limit
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin in-between($min, $max) {
+	$selector: &;
+	$child: nth(nth($selector, -1), -1);
+
+	&:nth-last-child(n + #{$min}):nth-last-child(-n + #{$max}):first-child,
+	&:nth-last-child(n + #{$min}):nth-last-child(-n + #{$max}):first-child ~ #{$child} {
+		@content;
+	}
+}
+
+// Select the first exact child
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin first-child() {
+	&:first-of-type {
+		@content;
+	}
+}
+
+// Select the last exact child
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin last-child() {
+	&:last-of-type {
+		@content;
+	}
+}
+
+// Select all even children.
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin even() {
+	&:nth-child(even) {
+		@content;
+	}
+}
+
+// Select all odd children.
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin odd() {
+	&:nth-child(odd) {
+		@content;
+	}
+}
+
+// Select only the first and last child.
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin first-last() {
+	&:first-child,
+	&:last-child {
+		@content;
+	}
+}
+
+// Will only select the child if it’s unique.
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @alias only
+@mixin unique() {
+	&:only-child {
+		@content;
+	}
+}
+
+// Will only select the child if it’s unique.
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin only() {
+	&:only-child {
+		@content;
+	}
+}
+
+// Will only select children if they are not unique. Meaning if there is at
+// least 2 children, the style is applied.
+// @group no-arguments
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+@mixin not-unique() {
+	&:not(:only-child) {
+		@content;
+	}
+}
+
+// This mixin is used to automatically sort z-index in numerical order. But it
+// can also sort them in anti-numerical order, depending the parameters you use.
+// @group using functions
+// @content [Write the style you want to apply to the children, and it will be added within the @content directive]
+// @param {number} $num - Number of children
+// @param {string} $direction [forward] - Direction of the sort
+// @param {number} $index [0] - Index of the sorting
+@mixin child-index($num, $direction: 'forward', $index: 0) {
+	@for $i from 1 through $num {
+		@if ($direction == 'forward') {
+			&:nth-child(#{$i}) {
+				z-index: order-index($i, $index);
+				@content;
+			}
+		} @else if ($direction == 'backward') {
+			&:nth-last-child(#{$i}) {
+				z-index: order-index($i, $index);
+				@content;
+			}
+		}
+	}
+}
+
+// Used by the child-index mixin. It will returned the proper sorted numbers
+// depending on the `$index` value.
+// @access private
+// @param {number} $num - Number of children
+// @param {number} $index - Index of the sorting
+@function order-index($i, $index) {
+	@return ($index + $i);
+}
